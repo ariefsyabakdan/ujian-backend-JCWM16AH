@@ -1,16 +1,33 @@
-const express = require('express')
-const cors = require('cors')
+const express = require("express");
+const app = express();
+const PORT = 2021;
+const cors = require("cors");
+const bearerToken = require("express-bearer-token");
 
-// main app
-const app = express()
+app.use(cors());
+app.use(bearerToken());
+app.use(express.json());
 
-// apply middleware
-app.use(cors())
+const { db } = require("./config");
 
-// main route
-const response = (req, res) => res.status(200).send('<h1>REST API JCWM16AH</h1>')
-app.get('/', response)
+db.getConnection((err, connection) => {
+  if (err) {
+    return console.error("error mysql:", err.message);
+  }
+  console.log("connection to my sql server:" + connection.threadId);
+});
 
-// bind to local machine
-const PORT = process.env.PORT || 2000
-app.listen(PORT, () => `CONNECTED : port ${PORT}`)
+app.get("/", (req, res) => {
+  res.status(200).send("<h1>REST API JCWMAH0506</h1>");
+});
+const { userRouters, movieRouters } = require("./routers");
+const { json } = require("express");
+app.use("/user", userRouters);
+app.use("/movies", movieRouters);
+
+app.use((error, req, res, next) => {
+  console.log("Handling error", error);
+  res.status(500).send({ status: "error mysql", messages: error });
+});
+
+app.listen(PORT, () => `CONNECTED : port ${PORT} `);
